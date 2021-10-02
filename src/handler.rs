@@ -86,13 +86,13 @@ impl OrderHandler {
             let i = 0;
             while i < availableContainers.len() {
                 let containerSpec = availableContainers.get(i).unwrap();
-                let containingProducts: Vec<ContainingProduct> = vec![];
+                let mut containingProducts: Vec<ContainingProduct> = vec![];
 
                 if self.canStoreProduct(containerSpec, &product) {
                     if self.canStoreProductPerOrderedQuantity(containerSpec, &product) {
                         containers.push(Container {
                             containerType: containerSpec.containerType.clone(),
-                            containingProducts: self.addToContainingProducts(containingProducts, &product.id, product.orderedQuantity),
+                            containingProducts: self.addToContainingProducts(&mut containingProducts, &product.id, product.orderedQuantity),
                         });
 
                         quantityAdded += &product.orderedQuantity;
@@ -103,7 +103,7 @@ impl OrderHandler {
                     containers.push(
                         Container {
                             containerType: containerSpec.containerType.clone(),
-                            containingProducts: self.addToContainingProducts(containingProducts, &product.id, howManyCanBeStored),
+                            containingProducts: self.addToContainingProducts(&mut containingProducts, &product.id, howManyCanBeStored),
                         }
                     );
                     quantityAdded += howManyCanBeStored
@@ -113,12 +113,11 @@ impl OrderHandler {
             let diff = product.orderedQuantity - quantityAdded;
             if diff > 0 {
                 // same container could be used multiple times
-
                 let mut i = 0;
                 while i < diff {
                     containers.push(Container {
-                        containerType: containers.get(0).unwrap().containerType.to_string(),
-                        containingProducts: containers.get(0).unwrap().containingProducts,
+                        containerType: containers.clone().get(0).unwrap().containerType.to_owned(),
+                        containingProducts: containers.clone().get(0).unwrap().containingProducts.to_owned(),
                     });
                     i += 1;
                 }
@@ -136,9 +135,9 @@ impl OrderHandler {
         self.containersHandler.getContainerVolume(containerSpec) >= self.productsHandler.getProductVolumePerOrderedQuantity(product)
     }
 
-    fn addToContainingProducts(&self, mut containingProducts: Vec<ContainingProduct>, id: &String, quantity: i32) -> Vec<ContainingProduct> {
+    fn addToContainingProducts(&self, containingProducts: &mut Vec<ContainingProduct>, id: &String, quantity: i32) -> Vec<ContainingProduct> {
         containingProducts.push(ContainingProduct { id: id.to_string(), quantity });
-        return containingProducts;
+        return containingProducts.to_owned();
     }
 
     fn howManyCanBeStored(&self, containerSpec: &ContainerSpec, product: &Product) -> i32 {
@@ -154,21 +153,6 @@ impl OrderHandler {
 
         return quantity;
     }
-
-    /*fn reuseSameContainer(&self, howManyTimes: i32, containers: &mut Vec<Container>) -> &mut Vec<Container> {
-    // fn reuseSameContainer(&self, howManyTimes: i32, containers: &mut Vec<Container>) {
-        let container = containers.get(0).unwrap();
-        let mut i = 0;
-        while i < howManyTimes {
-            containers.push(Container{
-                containerType: container.containerType.to_string(),
-                containingProducts: container.containingProducts
-            });
-            i +=1
-        }
-
-       containers
-    }*/
 
     fn getTotalVolume(&self, containers: &Vec<Container>) -> i32 {
         let mut totalVolume = 0;

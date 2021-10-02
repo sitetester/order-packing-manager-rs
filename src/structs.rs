@@ -29,13 +29,13 @@ pub struct TotalVolume {
     pub value: i32,
 }
 
-#[derive(Debug, PartialEq, PartialOrd)]
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub struct ContainingProduct {
     pub id: String,
     pub quantity: i32,
 }
 
-#[derive(Debug, PartialEq, PartialOrd)]
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub struct Container {
     pub containerType: String,
     pub containingProducts: Vec<ContainingProduct>,
